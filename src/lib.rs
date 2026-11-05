@@ -8,7 +8,7 @@
 //! * Secret-dependent paths are branch-free; decapsulation uses implicit rejection.
 //! * [`Kem`] is sealed: only the three FIPS 203 sets exist.
 //!
-//! **Status:** uncompiled draft, cross-checked only against `tools/ref.py`. Run NIST ACVP vectors and a
+//! **Status:** draft, cross-checked only against `tools/ref.py`, not NIST ACVP. Run ACVP vectors and a
 //! timing review before use. CNSA 2.0 requires ML-KEM-1024.
 //!
 //! [FIPS 203]: https://csrc.nist.gov/pubs/fips/203/final
