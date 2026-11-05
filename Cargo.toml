@@ -1,0 +1,20 @@
+[package]
+name = "qg-mlkem"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.70"
+description = "Sealed, dependency-free, no_std ML-KEM (FIPS 203); constants proven by build.rs"
+license = "Apache-2.0 OR MIT"
+build = "build.rs"
+
+[features]
+std = []
+
+[profile.dev.build-override]
+opt-level = 3
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+overflow-checks = true

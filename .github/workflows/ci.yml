@@ -1,0 +1,58 @@
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+env:
+  RUSTFLAGS: -D warnings
+  CARGO_TERM_COLOR: always
+
+jobs:
+  vectors:
+    name: Vectors + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4            # TODO pin to commit SHA (see actions.lock in op-media)
+      - uses: dtolnay/rust-toolchain@1.85.0
+      - name: Regenerate cross-check vectors and fail on drift
+        run: |
+          python3 tools/ref.py "$RUNNER_TEMP/vectors.inc" > /dev/null
+          diff -u tests/vectors.inc "$RUNNER_TEMP/vectors.inc"
+      - name: Test (release)
+        run: cargo test --release
+
+  check:
+    name: Lint + feature matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.0
+        with: { components: "rustfmt, clippy" }
+      - run: cargo fmt --all -- --check       # run `cargo fmt` once and commit before enabling this gate
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+      - run: cargo test --release --no-default-features
+      - run: cargo test --release --all-features
+
+  nostd:
+    name: no_std build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.0
+        with: { targets: thumbv7em-none-eabi }
+      - run: cargo build --release --target thumbv7em-none-eabi
+
+  audit:
+    name: cargo audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.0
+      - run: cargo generate-lockfile && cargo install cargo-audit --locked && cargo audit
+
+  # nist:  # later: checked-in ACVP vectors only (no generation)
